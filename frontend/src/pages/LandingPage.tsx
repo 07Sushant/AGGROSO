@@ -235,7 +235,7 @@ export function LandingPage() {
         {/* Author credit */}
         <div className="miq-author-credit" title="Built by Sushant Kumar">
           <img
-            src="https://avatars.githubusercontent.com/u/84934444?v=4"
+            src="https://avatars.githubusercontent.com/u/93951120?v=4"
             alt="Sushant Kumar"
             className="miq-author-avatar"
           />
