@@ -159,7 +159,10 @@ function QuarantineTable({ dryRunId }: { dryRunId: number }) {
   );
   const codes = useMemo(() => [...new Set(rows.map((r) => r.code))].sort(), [rows]);
   const fields = useMemo(() => [...new Set(rows.map((r) => r.target_field ?? "-"))].sort(), [rows]);
-  const filters = [...(code ? [{ id: "code", value: code }] : []), ...(field ? [{ id: "target_field", value: field }] : [])];
+  const filters = useMemo(
+    () => [...(code ? [{ id: "code", value: code }] : []), ...(field ? [{ id: "target_field", value: field }] : [])],
+    [code, field],
+  );
 
   return (
     <Card>
