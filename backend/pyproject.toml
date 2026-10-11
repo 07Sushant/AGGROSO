@@ -1,0 +1,19 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "BLE"]
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "postgres: needs a real PostgreSQL database (runs in CI only)",
+]
+addopts = "-q"
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*" = ["E501", "W291"]

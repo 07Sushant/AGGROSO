@@ -1,0 +1,14 @@
+# Runtime dependencies, pinned exactly. Python 3.12 in Docker; code stays 3.10-compatible.
+fastapi==0.143.0
+starlette==1.7.0
+uvicorn==0.54.0
+pydantic==2.14.0
+pydantic-settings==2.15.0
+SQLAlchemy==2.0.54
+alembic==1.20.0
+psycopg[binary]==3.3.6
+bcrypt==5.0.0
+PyJWT==2.15.1
+structlog==26.1.0
+openai==1.109.1
+httpx==0.28.1
