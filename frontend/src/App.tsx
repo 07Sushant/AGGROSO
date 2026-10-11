@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/lib/auth";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { LogsPage } from "@/pages/LogsPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
@@ -25,6 +26,7 @@ function RequireAuth() {
 export function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
         <Route path="/projects" element={<ProjectsPage />} />
@@ -41,7 +43,7 @@ export function App() {
         <Route path="/logs" element={<LogsPage />} />
         <Route path="/schema-import" element={<SchemaImportPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/projects" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
