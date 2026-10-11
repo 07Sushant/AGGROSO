@@ -46,7 +46,7 @@ try {
         try { Call POST "/plan-versions/$($version.id)/runs" $op @{} @{ "Idempotency-Key" = [guid]::NewGuid().ToString() } | Out-Null; throw "not refused" }
         catch { if ($_.Exception.Message -eq "not refused") { throw }; "refused" }
     }
-    Step "approve" { $a = Call POST "/plan-versions/$($version.id)/approve" $ap @{ comment = "smoke" }; "status=$($a.status)" }
+    Step "approve" { $a = Call POST "/plan-versions/$($version.id)/approve" $ap @{ comment = "smoke" }; "status=$($a.version.status)" }
     $key = [guid]::NewGuid().ToString()
     Step "execute with fault after 20" {
         $script:run = Call POST "/plan-versions/$($version.id)/runs" $op @{ simulate_failure_after = 20 } @{ "Idempotency-Key" = $key }
