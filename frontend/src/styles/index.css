@@ -334,3 +334,31 @@
   font-family: var(--miq-sans);
 }
 .miq-author-link:hover { color: var(--miq-accent); }
+
+/* Neon pulse on the top-nav avatar */
+@keyframes miq-neon-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent, 0 0 6px 2px color-mix(in srgb, var(--miq-accent) 60%, transparent); }
+  50%       { box-shadow: 0 0 0 3px color-mix(in srgb, var(--miq-accent) 20%, transparent), 0 0 14px 5px color-mix(in srgb, var(--miq-accent) 45%, transparent); }
+}
+.miq-author-credit-neon .miq-author-avatar {
+  animation: miq-neon-pulse 2.4s ease-in-out infinite;
+  border-color: var(--miq-accent);
+}
+.miq-author-credit-neon:hover .miq-author-avatar {
+  animation: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--miq-accent) 25%, transparent), 0 0 20px 6px color-mix(in srgb, var(--miq-accent) 50%, transparent);
+  border-color: var(--miq-accent);
+}
+.miq-author-credit-neon .miq-author-popup {
+  bottom: auto;
+  top: calc(100% + 10px);
+  right: 0;
+}
+.miq-author-credit-neon .miq-author-popup::after {
+  bottom: auto;
+  top: -5px;
+  transform: rotate(-135deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .miq-author-credit-neon .miq-author-avatar { animation: none; }
+}
