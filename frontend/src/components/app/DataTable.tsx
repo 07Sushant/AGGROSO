@@ -10,10 +10,12 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TableScroll } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
+
+const EMPTY_COLUMN_FILTERS: ColumnFiltersState = [];
 
 /** TanStack table: sorting, column filters, pagination, sticky header, semantic markup. */
 export function DataTable<T>({
@@ -37,11 +39,13 @@ export function DataTable<T>({
   maxHeight?: string;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const stableFilters = useMemo(() => columnFilters ?? EMPTY_COLUMN_FILTERS, [columnFilters]);
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, columnFilters: columnFilters ?? [], globalFilter },
+    state: { sorting, columnFilters: stableFilters, globalFilter },
     onSortingChange: setSorting,
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

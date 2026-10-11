@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
 import { AlertTriangle, FolderPlus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -109,7 +109,6 @@ function NewProjectDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
       navigate(`/projects/${project.id}`);
     },
     onError: (err) => {
-      // Map 422s onto fields (spec §8.4 validation state).
       if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
         form.setError("dataset_key", { type: "LIMIT_EXCEEDED", message: err.message });
       } else if (err instanceof ApiError) {
@@ -122,14 +121,13 @@ function NewProjectDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   });
 
   useEffect(() => {
-    if (open) {
-      form.reset({ name: "", dataset_key: "baseline_60" });
-      create.reset();
-    }
+    if (!open) return;
+    form.reset({ name: "", dataset_key: "baseline_60" });
+    create.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const selectedKey = form.watch("dataset_key");
+  const selectedKey = useWatch({ control: form.control, name: "dataset_key", defaultValue: "baseline_60" });
   const selected = datasets.data?.find((d) => d.key === selectedKey);
   const errors = form.formState.errors;
 
