@@ -53,26 +53,47 @@ class AIProbe:
         self._lock = threading.Lock()
         self._result: dict[str, Any] | None = None
         self._checked_at = 0.0
+        self._backup_checked_at = 0.0
         self._refreshing = False
         self._done = threading.Event()
 
     def reset(self) -> None:
         with self._lock:
             self._result, self._checked_at, self._refreshing = None, 0.0, False
+            self._backup_checked_at = 0.0
             self._done = threading.Event()
 
     def refresh(self, settings: Settings | None = None) -> dict[str, Any]:
+        """Probe the primary; probe the backup only when its last check is older than
+        ``LLM_BACKUP_PROBE_TTL_S`` (its free tier allows only a few requests per day)."""
         settings = settings or get_settings()
         primary, backup = engines(settings)
+        with self._lock:
+            previous = self._result
+            backup_fresh = (previous is not None and time.monotonic() - self._backup_checked_at
+                            < settings.llm_backup_probe_ttl_s)
         with ThreadPoolExecutor(max_workers=2) as pool:
             fp = pool.submit(_probe_engine, primary, settings.llm_probe_timeout_s)
-            fb = pool.submit(_probe_engine, backup, settings.llm_probe_timeout_s)
-            result = {"primary": fp.result(), "backup": fb.result()}
+            fb = (None if backup_fresh
+                  else pool.submit(_probe_engine, backup, settings.llm_probe_timeout_s))
+            result = {"primary": fp.result(),
+                      "backup": previous["backup"] if fb is None and previous else fb.result()}
         result["checked_at"] = datetime.now(timezone.utc).isoformat()
         with self._lock:
             self._result, self._checked_at, self._refreshing = result, time.monotonic(), False
+            if fb is not None:
+                self._backup_checked_at = self._checked_at
             self._done.set()
         return result
+
+    def note_outcome(self, alias: str, ok: bool) -> None:
+        """Real calls keep the cached status current without spending quota on probes."""
+        with self._lock:
+            if self._result is None:
+                return
+            self._result[alias] = {"state": "ok" if ok else "down", "latency_ms": None}
+            if alias == "backup":
+                self._backup_checked_at = time.monotonic()
 
     def refresh_in_background(self, settings: Settings | None = None) -> None:
         with self._lock:

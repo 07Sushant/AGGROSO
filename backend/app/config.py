@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     database_url_direct: str = ""
     app_env: str = "development"
     llm_mode: str = "live"  # live | mock (mock is for tests only)
-    agent_mode: str = "full"  # full | compact
+    # full | compact. Compact by default: the primary's free tier caps input tokens per minute
+    # (measured 7,000), and a full-mode conversation resends every tool result on each turn.
+    agent_mode: str = "compact"
     force_backup: bool = False
 
     primary_llm_base_url: str = "https://api.groq.com/openai/v1"
@@ -56,7 +58,11 @@ class Settings(BaseSettings):
     backup_llm_timeout_s: float = 120.0
     llm_probe_timeout_s: float = 20.0
     llm_probe_ttl_s: int = 300
+    llm_backup_probe_ttl_s: int = 21600  # the backup's free tier has a small daily quota
     llm_retry_delay_s: float = 1.0
+    # On a 429 the gateway waits for the provider's Retry-After when it is at most this long
+    # (the primary's free tier has a per-minute input-token cap); otherwise LLM_RETRY_DELAY_S.
+    llm_rate_limit_max_wait_s: float = 30.0
 
     # --- agent (spec §7.1, §7.3) ---
     agent_max_steps: int = 12  # LLM turns in full mode

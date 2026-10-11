@@ -181,8 +181,8 @@ class AgentRunner:
         calls: list[tuple[str, dict[str, Any]]] = [("get_source_schema", {}),
                                                    ("get_target_schema", {})]
         calls += [("profile_source_field", {"field": f["name"]}) for f in self.source["fields"]]
-        calls += [("list_transformations", {}), ("sample_source_records", {"limit": 10})]
-        blocks = []
+        calls += [("list_transformations", {}), ("sample_source_records", {"limit": 5})]
+        blocks: dict[str, str] = {}
         for name, args in calls:
             started = time.perf_counter()
             result = dispatch(self.ctx, name, args)
@@ -190,26 +190,42 @@ class AgentRunner:
                          result={"invoked_by": "runner", "data": result},
                          latency_ms=int((time.perf_counter() - started) * 1000))
             log.info("tool.call", tool=name, invoked_by="runner", ok=True)
-            blocks.append(f"## {name} {json.dumps(args)}\n{wrap_result(name, result)}")
+            label = f"{name} {json.dumps(args)}" if args else name
+            blocks[label] = f"## {label}\n{wrap_result(name, result)}"
         task = prompts.compact_task(self.source["entity"], self.target["entity"],
-                                    "\n\n".join(blocks), self.revision)
+                                    "\n\n".join(blocks.values()), self.revision)
+        tools = tool_specs([SUBMIT_PLAN])
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": prompts.SYSTEM_PROMPT},
             {"role": "user", "content": task},
         ]
-        tools = tool_specs([SUBMIT_PLAN])
-        for _round in range(2):  # the first submission and at most one repair
+        for round_no in range(2):  # the first submission and at most one repair
             res = self._llm(alias, messages, tools, FORCE_SUBMIT)
-            messages.append(res.assistant_message)
-            if not res.tool_calls:
-                messages.append({"role": "user", "content": "Call submit_plan now."})
-                continue
+            submits = [tc for tc in res.tool_calls if tc.name == SUBMIT_PLAN]
             for tc in res.tool_calls:
-                content, plan = self._handle(alias, tc, 1)
-                messages.append({"role": "tool", "tool_call_id": tc.id, "content": content})
+                if tc.name != SUBMIT_PLAN:
+                    self._handle(alias, tc, 1)  # recorded and rejected; nothing else runs
+            if not submits:
+                feedback = "No submit_plan call was made."
+                previous: dict[str, Any] = {}
+            else:
+                content, plan = self._handle(alias, submits[0], 1)
                 if plan is not None:
                     return plan
-        raise AgentFailure("PLAN_INVALID", "The agent did not produce a valid plan.")
+                feedback, previous = content, submits[0].arguments
+            if round_no == 0:
+                # The repair is a fresh, smaller conversation (schemas, registry, the rejected
+                # plan and the validator errors), so it fits the primary's per-minute input cap.
+                # No assistant message is replayed, so no provider signature is needed.
+                reference = "\n\n".join(v for k, v in blocks.items() if k in (
+                    "get_source_schema", "get_target_schema", "list_transformations"))
+                messages = [
+                    {"role": "system", "content": prompts.SYSTEM_PROMPT},
+                    {"role": "user", "content": prompts.compact_repair_task(
+                        reference, previous, feedback)},
+                ]
+        raise AgentFailure("PLAN_INVALID", "The agent did not produce a valid plan after one "
+                           "repair round; see the trace for the validator errors.")
 
     # ------------------------------------------------------------------ one LLM call
     def _remaining(self) -> float:

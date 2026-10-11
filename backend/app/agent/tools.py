@@ -282,17 +282,55 @@ def sanitize_schema(schema: dict[str, Any]) -> dict[str, Any]:
         if "enum" in out and "type" not in out:
             out["type"] = "string"
         if out.get("type") == "object" and "properties" not in out:
-            out["description"] = (out.get("description", "") + " Free-form JSON object.").strip()
+            out["additionalProperties"] = True  # free-form object
         return out
 
     return walk(schema)
+
+
+# Transform params, spelled out: an object schema without properties makes the backup engine
+# drop every key the model writes into it. Keep in step with the registry's params models
+# (a test checks this).
+_STRINGS = {"type": "array", "items": {"type": "string"}}
+PARAMS_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "description": "This transform's params exactly as list_transformations documents them; "
+                   "{} when it takes none.",
+    "properties": {
+        "part": {"type": "string", "enum": ["first", "last"], "description": "split_name"},
+        "formats": {**_STRINGS, "description": "parse_date: strptime formats, tried in order"},
+        "default_country": {"type": "string", "description": "normalize_phone_e164",
+                            "enum": ["US", "CA", "IN", "GB", "DE", "FR", "AU", "SG"]},
+        "mapping": {"type": "object", "additionalProperties": True,
+                    "description": "map_values: lookup table, source value -> target value"},
+        "strict": {"type": "boolean", "description": "map_values"},
+        "case_insensitive": {"type": "boolean", "description": "map_values"},
+        "null_values": {**_STRINGS, "description": "parse_currency_to_cents"},
+        "true_values": {**_STRINGS, "description": "to_boolean"},
+        "false_values": {**_STRINGS, "description": "to_boolean"},
+        "value": {"anyOf": [{"type": "string"}, {"type": "integer"}, {"type": "boolean"}],
+                  "description": "constant / default_if_empty"},
+        "separator": {"type": "string", "description": "concat"},
+    },
+}
+
+
+def _with_params_schema(node: Any) -> Any:
+    if isinstance(node, dict):
+        props = node.get("properties")
+        if isinstance(props, dict) and "params" in props and "name" in props:
+            node = {**node, "properties": {**props, "params": PARAMS_SCHEMA}}
+        return {k: _with_params_schema(v) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_with_params_schema(v) for v in node]
+    return node
 
 
 def _parameters(model: type[BaseModel]) -> dict[str, Any]:
     schema = sanitize_schema(model.model_json_schema())
     schema.setdefault("properties", {})
     schema["type"] = "object"
-    return schema
+    return _with_params_schema(schema)
 
 
 SUBMIT_PLAN_DESCRIPTION = (

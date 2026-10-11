@@ -15,6 +15,7 @@ Logs and results use the engine alias only; model ids and base URLs stay interna
 from __future__ import annotations
 
 import json
+import re
 import threading
 import time
 from collections import deque
@@ -56,10 +57,11 @@ class LLMResult:
 class ProviderError(Exception):
     """A single failed request, classified. ``kind`` is part of the public vocabulary."""
 
-    def __init__(self, kind: str, detail: str = "") -> None:
+    def __init__(self, kind: str, detail: str = "", retry_after_s: float | None = None) -> None:
         super().__init__(kind)
         self.kind = kind
         self.detail = detail  # internal only (may name the provider); goes to the ai log
+        self.retry_after_s = retry_after_s
 
 
 class EngineFailure(Exception):
@@ -98,11 +100,13 @@ class LiveClient:
         except openai.APIConnectionError as exc:
             raise ProviderError("connection", str(exc)) from exc
         except openai.RateLimitError as exc:
-            raise ProviderError("rate_limited", str(exc)) from exc
+            raise ProviderError("rate_limited", str(exc), _retry_after(exc)) from exc
         except (openai.AuthenticationError, openai.PermissionDeniedError) as exc:
             raise ProviderError("auth", str(exc)) from exc
         except openai.APIStatusError as exc:
             kind = "server_error" if exc.status_code >= 500 else "bad_request"
+            if exc.status_code == 400 and "tool_use_failed" in str(exc):
+                kind = "malformed"  # the provider rejected the model's own tool-call JSON
             raise ProviderError(kind, f"{exc.status_code}: {exc}") from exc
         except openai.OpenAIError as exc:
             raise ProviderError("client_error", str(exc)) from exc
@@ -128,6 +132,21 @@ class LiveClient:
             tokens_out=getattr(usage, "completion_tokens", 0) or 0,
             latency_ms=latency_ms,
         )
+
+
+_TRY_AGAIN_RE = re.compile(r"try again in (\d+(?:\.\d+)?)s\b")
+
+
+def _retry_after(exc: openai.APIStatusError) -> float | None:
+    """The provider's Retry-After header, or the 'try again in N s' hint in the message."""
+    try:
+        value = exc.response.headers.get("retry-after")
+        if value is not None:
+            return float(value)
+    except (AttributeError, ValueError):
+        pass
+    match = _TRY_AGAIN_RE.search(str(exc))
+    return float(match.group(1)) if match else None
 
 
 def parse_arguments(raw: str | None) -> dict[str, Any]:
@@ -242,7 +261,8 @@ class Gateway:
         timeout = min(timeout_s or engine.timeout_s, engine.timeout_s)
         started = time.perf_counter()
         last_kind = "unknown"
-        for attempt in (1, 2):
+        retried = waited = False
+        for attempt in (1, 2, 3):
             log.info("llm.request", engine=alias, attempt=attempt, messages=len(messages),
                      tools=len(tools or []), prompt_hash=prompt_hash(messages),
                      prompt_version=prompt_version)
@@ -251,20 +271,41 @@ class Gateway:
             except ProviderError as exc:
                 last_kind = exc.kind
                 log.warning("llm.error", engine=alias, attempt=attempt, reason=exc.kind,
-                            detail=exc.detail[:300])
-                if exc.kind in RETRYABLE and attempt == 1:
-                    time.sleep(self.settings.llm_retry_delay_s)
+                            retry_after_s=exc.retry_after_s, detail=exc.detail[:600])
+                # One retry for 429 / 5xx / malformed output. A short provider Retry-After
+                # (a per-minute token cap) also earns one wait, even after that retry.
+                if self._short_rate_limit(exc) and not waited:
+                    waited = True
+                    time.sleep(self._retry_delay(exc))
+                    continue
+                if exc.kind in RETRYABLE and not retried and attempt < 3:
+                    retried = True
+                    time.sleep(self._retry_delay(exc))
                     continue
                 break
             if alias == "primary":
                 breaker.record_success()
+            _note_outcome(alias, ok=True)
             log.info("llm.response", engine=alias, latency_ms=result.latency_ms,
                      tokens_in=result.tokens_in, tokens_out=result.tokens_out,
                      finish_reason=result.finish_reason, tool_calls=len(result.tool_calls))
             return result
         if alias == "primary":
             breaker.record_failure()
+        _note_outcome(alias, ok=False)
         raise EngineFailure(alias, last_kind, int((time.perf_counter() - started) * 1000))
+
+    def _short_rate_limit(self, exc: ProviderError) -> bool:
+        hint = exc.retry_after_s
+        return (exc.kind == "rate_limited" and hint is not None
+                and 0 < hint <= self.settings.llm_rate_limit_max_wait_s)
+
+    def _retry_delay(self, exc: ProviderError) -> float:
+        """A short provider Retry-After (per-minute token caps) is honoured; long ones (daily
+        quotas) are not worth waiting for, so the default delay applies and failover follows."""
+        if self._short_rate_limit(exc):
+            return float(exc.retry_after_s or 0)
+        return self.settings.llm_retry_delay_s
 
     def chat(
         self,
@@ -292,6 +333,12 @@ class Gateway:
             except EngineFailure as exc:
                 reasons[alias] = exc.reason
         raise LLMUnavailable(reasons)
+
+
+def _note_outcome(alias: str, *, ok: bool) -> None:
+    from app.agent.probe import ai_probe
+
+    ai_probe.note_outcome(alias, ok)
 
 
 def get_gateway(settings: Settings | None = None) -> Gateway:

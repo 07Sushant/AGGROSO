@@ -54,6 +54,9 @@ def test_happy_path_creates_agent_draft_with_trace(client, operator_headers):  #
     llm_steps = [s for s in run["trace"] if s["kind"] == "llm_call"]
     assert all(s["tokens_in"] > 0 and s["tokens_out"] > 0 for s in llm_steps)
     assert all(s["latency_ms"] >= 0 for s in run["trace"])
+    # Echo rule: the next turn carries the assistant message exactly as the engine returned it.
+    second = mock_client.calls_for("primary")[1]["messages"]
+    assert second[2]["role"] == "assistant" and len(second[2]["tool_calls"]) == 3
     assert run["tokens_in"] == sum(s["tokens_in"] for s in run["trace"])
     # The model never sees schemas in the task: it has to inspect through the tools.
     first = mock_client.calls_for("primary")[0]
@@ -145,9 +148,10 @@ def test_primary_timeout_restarts_on_backup_in_compact_mode(client, operator_hea
     assert first["tool_choice"]["function"]["name"] == "submit_plan"
     assert [t["function"]["name"] for t in first["tools"]] == ["submit_plan"]
     assert "untrusted_data" in first["messages"][1]["content"]
-    # Echo rule: the repair turn carries the backup's assistant message unchanged.
-    echoed = [m for m in backup_calls[1]["messages"] if m["role"] == "assistant"][0]
-    assert echoed["tool_calls"][0]["extra_content"]["signature"].startswith("sig-")
+    # The repair is a fresh, smaller conversation with the validator errors and the plan.
+    repair = backup_calls[1]["messages"]
+    assert [m["role"] for m in repair] == ["system", "user"]
+    assert "VALIDATOR RESULT" in repair[1]["content"] and "certain" in repair[1]["content"]
     assert first["max_completion_tokens"] == get_settings().backup_max_completion_tokens
 
 
@@ -240,8 +244,35 @@ def test_revise_feeds_answers_back_and_links_the_parent(client, operator_headers
     assert diff.status_code == 200 and diff.json()["against_version_id"] == base["id"]
 
 
-def test_tool_specs_use_portable_json_schema():  # type: ignore[no-untyped-def]
-    text = json.dumps(tool_specs())
-    assert "$ref" not in text and "additionalProperties" not in text and "anyOf" not in text
-    names = [t["function"]["name"] for t in tool_specs()]
+def test_tool_specs_are_inlined_and_spell_out_transform_params():  # type: ignore[no-untyped-def]
+    from app.agent.tools import PARAMS_SCHEMA
+    from app.domain.transforms import REGISTRY
+
+    specs = tool_specs()
+    assert "$ref" not in json.dumps(specs)
+    names = [t["function"]["name"] for t in specs]
     assert len(names) == 8 and names[-1] == "submit_plan"
+    every_param = {name for spec in REGISTRY.values() for name in spec.params_model.model_fields}
+    assert every_param == set(PARAMS_SCHEMA["properties"])
+    submit = specs[-1]["function"]["parameters"]
+    step = submit["properties"]["mappings"]["items"]["properties"]["transforms"]["items"]
+    assert step["properties"]["params"] == PARAMS_SCHEMA
+
+
+def test_short_retry_after_is_honoured_and_daily_quotas_are_not():  # type: ignore[no-untyped-def]
+    from app.agent.gateway import ProviderError, get_gateway
+
+    gateway = get_gateway()
+    assert gateway._retry_delay(ProviderError("rate_limited", retry_after_s=12)) == 12
+    default = get_settings().llm_retry_delay_s
+    assert gateway._retry_delay(ProviderError("rate_limited", retry_after_s=37054)) == default
+    assert gateway._retry_delay(ProviderError("server_error", retry_after_s=5)) == default
+
+
+def test_compact_mode_on_the_primary(client, operator_headers, monkeypatch):  # type: ignore[no-untyped-def]
+    monkeypatch.setattr(get_settings(), "agent_mode", "compact")
+    run = run_agent(client, operator_headers, project_id(client, operator_headers))
+    assert run["status"] == "SUCCEEDED"
+    assert (run["engine"], run["mode"], run["fell_back"]) == ("primary", "compact", False)
+    assert len(mock_client.calls_for("primary")) == 1
+    assert not [s for s in run["trace"] if s["kind"] == "fallback"]
