@@ -6,15 +6,20 @@ MigrateIQ is a migration planning and reconciliation workbench. An AI agent prop
 
 | Component | URL |
 |---|---|
-| Frontend (React on Vercel) | `<vercel-url>` |
+| Frontend (React on Vercel) | https://aggroso-ten.vercel.app |
+| Login page | https://aggroso-ten.vercel.app/login |
 | Backend API (FastAPI on a Hugging Face Space) | https://isushant-shl-assessment-recommender.hf.space |
 | API docs (OpenAPI) | https://isushant-shl-assessment-recommender.hf.space/api/docs |
 | Health | https://isushant-shl-assessment-recommender.hf.space/api/health |
 
-| Username | Password | Role |
-|---|---|---|
-| `operator` | `migrateiq-demo` | Creates projects, runs the agent, dry runs, executes and retries |
-| `approver` | `migrateiq-demo` | Approves, rejects or revokes plan versions and performs rollbacks |
+### Demo login credentials
+
+| Role | Username | Password | What this role can do |
+|---|---|---|---|
+| Operator | `operator` | `migrateiq-demo` | Create projects, run the AI agent, answer questions, edit plans, dry run, execute, retry, import schema screenshots |
+| Approver | `approver` | `migrateiq-demo` | Review the approval checklist, approve / reject / revoke plan versions, roll back runs, approve schema imports |
+
+Tip: open the operator in one browser window and the approver in a private window side by side to see the separation of duties.
 
 These are demo-only accounts with no access to anything outside this application. Each reviewer should create their own project; there is no global reset.
 
@@ -251,6 +256,7 @@ Import the repository with root directory `frontend`, framework preset Vite, and
 - Approval gate bound to the plan hash, dry-run hash and source checksum, with role separation.
 - Idempotent chunked execution, quarantine of conflicting rows, fault injection, retry without duplicates, read-only reconciliation and run-scoped rollback.
 - History timeline, append-only audit log, structured logs with request ids and an in-app log viewer.
+- Schema import from a screenshot: the vision model proposes fields and types, code normalises them (snake_case, type mapping, duplicate and low-confidence flags) and compares them with the provided source schema, and an approver must confirm every type before the schema is accepted. The image is never stored, only its SHA-256.
 - Hosted backend, database and frontend; CI.
 
 ## Excluded scope
@@ -262,7 +268,6 @@ Import the repository with root directory `frontend`, framework preset Vite, and
 - Rolling back a rollback.
 - SSO and real user management.
 - Arbitrary target schemas.
-- Screenshot schema import: the frontend page exists, but the backend endpoint is not part of this build.
 
 ## Limitations
 
