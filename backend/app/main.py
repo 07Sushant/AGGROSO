@@ -14,12 +14,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.agent.probe import ai_probe
-from app.api import routes_auth, routes_health, routes_inputs, routes_ops
+from app.api import (
+    routes_auth,
+    routes_health,
+    routes_inputs,
+    routes_ops,
+    routes_plans,
+    routes_projects,
+    routes_runs,
+)
 from app.config import Settings, get_settings
 from app.db import init_engine, session_factory
 from app.errors import register_error_handlers
 from app.logging import RequestContextMiddleware, configure_logging, get_logger
 from app.security import seed_demo_users
+from app.services.runs import recover_stale_runs
 
 log = get_logger("app")
 
@@ -28,6 +37,9 @@ def _startup(settings: Settings) -> None:
     try:
         with session_factory()() as db:
             seed_demo_users(db, settings)
+            recovered = recover_stale_runs(db)
+            if recovered:
+                log.warning("startup.stale_runs_recovered", count=recovered)
     except SQLAlchemyError as exc:
         # The app still starts; /api/health reports the database as down.
         log.error("startup.seed_failed", error=type(exc).__name__)
@@ -76,6 +88,9 @@ def create_app(settings: Settings | None = None, *, init_db: bool = True) -> Fas
         routes_auth.router,
         routes_inputs.router,
         routes_ops.router,
+        routes_projects.router,
+        routes_plans.router,
+        routes_runs.router,
     ):
         app.include_router(router, prefix="/api")
 

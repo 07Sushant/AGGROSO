@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -77,3 +77,43 @@ class TransformInfo(BaseModel):
 class LogsResponse(BaseModel):
     items: list[dict[str, Any]]
     count: int
+
+
+class ProjectCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    dataset_key: str = Field(min_length=1, max_length=64)
+
+
+class PlanVersionCreate(BaseModel):
+    plan: dict[str, Any]
+    change_note: str = Field(min_length=1, max_length=2000)
+    parent_version_id: int | None = None
+
+
+class PlanValidateRequest(BaseModel):
+    plan: dict[str, Any] | None = None
+
+
+class AnswersRequest(BaseModel):
+    answers: dict[str, Annotated[str, Field(min_length=1, max_length=2000)]] = Field(
+        min_length=1, max_length=50)
+
+
+class RiskAckRequest(BaseModel):
+    risk_ids: list[str] = Field(min_length=1, max_length=100)
+
+
+class ApproveRequest(BaseModel):
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+class CommentRequired(BaseModel):
+    comment: str = Field(min_length=1, max_length=2000)
+
+
+class ExecuteRequest(BaseModel):
+    simulate_failure_after: int | None = Field(default=None, ge=1, le=10000)
+
+
+class RollbackRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=2000)
