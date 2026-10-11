@@ -283,8 +283,7 @@
   border-color: var(--miq-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--miq-accent) 18%, transparent);
 }
-.miq-author-popup {
-  display: none;
+.miq-author-popup { display: flex;
   position: absolute;
   bottom: calc(100% + 10px);
   right: 0;
@@ -310,10 +309,7 @@
   border-bottom: 1px solid var(--miq-rule);
   transform: rotate(45deg);
 }
-.miq-author-credit:hover .miq-author-popup,
-.miq-author-credit:focus-within .miq-author-popup {
-  display: flex;
-}
+
 .miq-author-name {
   font-size: 0.8125rem;
   font-weight: 600;
