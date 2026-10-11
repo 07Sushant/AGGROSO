@@ -115,5 +115,10 @@ class ExecuteRequest(BaseModel):
     simulate_failure_after: int | None = Field(default=None, ge=1, le=10000)
 
 
+class AgentRunCreate(BaseModel):
+    base_version_id: int | None = None  # set -> a revise run of that version
+    use_answers: bool = True
+
+
 class RollbackRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=2000)

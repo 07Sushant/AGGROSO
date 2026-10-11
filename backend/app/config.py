@@ -48,10 +48,27 @@ class Settings(BaseSettings):
     primary_llm_model: str = "qwen/qwen3.8-27b"
     backup_llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
     backup_llm_model: str = "gemini-3.8-flash"
+    # Provider extras as JSON objects (sent through extra_body). The primary hides its reasoning
+    # text so it can never leak into tool arguments or JSON output.
+    primary_llm_extra_body: str = '{"reasoning_format": "hidden"}'
+    backup_llm_extra_body: str = ""
     llm_timeout_s: float = 30.0
     backup_llm_timeout_s: float = 120.0
     llm_probe_timeout_s: float = 20.0
     llm_probe_ttl_s: int = 300
+    llm_retry_delay_s: float = 1.0
+
+    # --- agent (spec §7.1, §7.3) ---
+    agent_max_steps: int = 12  # LLM turns in full mode
+    agent_wall_s: float = 150.0  # full mode
+    agent_compact_wall_s: float = 300.0
+    agent_max_repairs: int = 2  # full mode; compact mode allows 1
+    primary_max_completion_tokens: int = 8192
+    backup_max_completion_tokens: int = 16384
+    agent_runs_per_project_hour: int = 5
+    agent_runs_global_hour: int = 40
+    schema_imports_global_hour: int = 20
+    agent_jobs_inline: bool = False  # tests only: run background jobs in the request thread
 
     jwt_secret: str = ""
     jwt_ttl_hours: int = 8

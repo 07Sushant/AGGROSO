@@ -66,6 +66,33 @@ def test_log_view_is_redacted_and_alias_only(client: TestClient, operator_header
     assert items[0]["tokens_in"] == 12 and items[0]["engine"] == "backup"
 
 
+def test_agent_run_and_trace_are_alias_only(client: TestClient, operator_headers):  # type: ignore[no-untyped-def]
+    from app.agent.gateway import breaker
+    from app.agent.mock_llm import mock_client
+
+    mock_client.reset()
+    breaker.reset()
+    # The primary fails with a vendor-naming error and the model's text names a vendor.
+    mock_client.queue("primary", {"content": "As a Qwen model on Groq, I will start."},
+                      {"error": "server_error"}, {"error": "server_error"})
+    try:
+        project = client.post("/api/projects", json={"name": "leak", "dataset_key": "clean_25"},
+                              headers=operator_headers).json()
+        res = client.post(f"/api/projects/{project['id']}/agent-runs", headers=operator_headers)
+        assert res.status_code == 202 and not LEAK.search(res.text)
+        run = client.get(f"/api/agent-runs/{res.json()['id']}", headers=operator_headers)
+        history = client.get(f"/api/projects/{project['id']}/history", headers=operator_headers)
+        logs = client.get("/api/ops/logs", params={"limit": 1000}, headers=operator_headers)
+    finally:
+        mock_client.reset()
+        breaker.reset()
+    body = run.json()
+    assert body["status"] == "SUCCEEDED" and body["fell_back"] is True
+    assert "model_id" not in body
+    for response in (run, history, logs):
+        assert not LEAK.search(response.text)
+
+
 def test_logs_filter_by_request_id(client: TestClient, operator_headers):  # type: ignore[no-untyped-def]
     client.get("/api/inputs/datasets", headers={**operator_headers, "X-Request-ID": "trace-me-1"})
     res = client.get("/api/ops/logs", params={"request_id": "trace-me-1"}, headers=operator_headers)

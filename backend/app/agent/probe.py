@@ -105,7 +105,10 @@ class AIProbe:
             result = self.refresh(settings)
         elif age > settings.llm_probe_ttl_s:
             self.refresh_in_background(settings)
-        return summarise(result, force_backup=settings.force_backup)
+        from app.agent.gateway import breaker
+
+        # An open circuit means new agent runs go to the backup, so report that.
+        return summarise(result, force_backup=settings.force_backup or breaker.is_open())
 
 
 def summarise(result: dict[str, Any], *, force_backup: bool = False) -> dict[str, Any]:

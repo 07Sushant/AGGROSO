@@ -26,6 +26,10 @@ os.environ.update(
         "DEMO_PASSWORD": "migrateiq-demo",
         "JWT_SECRET": "test-only-jwt-secret-0123456789abcdef",
         "FAULT_INJECTION_ENABLED": "true",
+        "AGENT_JOBS_INLINE": "true",
+        "LLM_RETRY_DELAY_S": "0",
+        "FORCE_BACKUP": "false",
+        "AGENT_MODE": "full",
     }
 )
 
@@ -61,6 +65,12 @@ def app():  # type: ignore[no-untyped-def]
     Base.metadata.create_all(engine)
     application = create_app(settings, init_db=False)
     yield application
+    if not IS_POSTGRES:
+        # agent_runs <-> plan_versions reference each other; SQLite cannot drop such tables
+        # with rows present while foreign keys are enforced.
+        raw = engine.raw_connection()
+        raw.driver_connection.execute("PRAGMA foreign_keys=OFF")
+        raw.close()
     Base.metadata.drop_all(engine)
     engine.dispose()
 

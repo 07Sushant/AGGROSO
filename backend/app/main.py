@@ -15,6 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.agent.probe import ai_probe
 from app.api import (
+    routes_agent,
     routes_auth,
     routes_health,
     routes_inputs,
@@ -91,6 +92,7 @@ def create_app(settings: Settings | None = None, *, init_db: bool = True) -> Fas
         routes_projects.router,
         routes_plans.router,
         routes_runs.router,
+        routes_agent.router,
     ):
         app.include_router(router, prefix="/api")
 
