@@ -77,3 +77,188 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   MigrateIQ landing page & login  — editorial design system
+   Matches the reference HTML exactly.
+   ═══════════════════════════════════════════════════════ */
+.miq-root {
+  --miq-bg:      #F5F6F7;
+  --miq-surface: #FFFFFF;
+  --miq-ink:     #12171C;
+  --miq-muted:   #56616C;
+  --miq-rule:    #D8DCE0;
+  --miq-accent:  #0B6B57;
+  --miq-on-acc:  #FFFFFF;
+  --miq-bad:     #A33B20;
+  --miq-ok-tint: #E3F0EB;
+  --miq-serif:   "Source Serif 4", Georgia, "Times New Roman", serif;
+  --miq-sans:    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --miq-mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --miq-radius:  3px;
+  --miq-gutter:  clamp(1rem, 4vw, 2rem);
+
+  background: var(--miq-bg);
+  color: var(--miq-ink);
+  font-family: var(--miq-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+@media (prefers-color-scheme: dark) {
+  .miq-root {
+    --miq-bg:      #0D1216;
+    --miq-surface: #141B21;
+    --miq-ink:     #E8ECEF;
+    --miq-muted:   #93A0AB;
+    --miq-rule:    #26313A;
+    --miq-accent:  #4FC3A1;
+    --miq-on-acc:  #07201A;
+    --miq-bad:     #E58C6F;
+    --miq-ok-tint: #12302A;
+  }
+}
+.miq-wrap { max-width: 70rem; margin-inline: auto; padding-inline: var(--miq-gutter); }
+
+/* brand */
+.miq-brand { display: inline-flex; align-items: center; gap: 0.6rem; font-family: var(--miq-serif); font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; color: var(--miq-ink); }
+.miq-brand svg { flex-shrink: 0; }
+
+/* header */
+.miq-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 2rem; padding-block: 1.25rem; border-bottom: 1px solid var(--miq-rule); }
+.miq-nav { display: flex; gap: 1.75rem; font-size: 0.9375rem; color: var(--miq-muted); }
+.miq-nav a { text-decoration: none; color: inherit; transition: color 0.15s; }
+.miq-nav a:hover { color: var(--miq-ink); }
+
+/* buttons */
+.miq-btn { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.25rem; background: var(--miq-accent); color: var(--miq-on-acc); border: 1px solid var(--miq-accent); border-radius: var(--miq-radius); font-size: 0.9375rem; font-weight: 500; text-decoration: none; transition: background 0.15s; cursor: pointer; font-family: var(--miq-sans); }
+.miq-btn:hover { background: color-mix(in srgb, var(--miq-accent) 86%, var(--miq-ink)); }
+.miq-btn-sm { min-height: 2.25rem; padding: 0 1rem; font-size: 0.875rem; }
+.miq-btn-outline { background: transparent; color: var(--miq-accent); }
+.miq-btn-outline:hover { background: var(--miq-ok-tint); }
+.miq-link { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.25em; color: inherit; transition: color 0.15s; cursor: pointer; background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; }
+.miq-link:hover { color: var(--miq-accent); }
+
+/* hero */
+.miq-hero { padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(2.5rem, 6vw, 4rem); }
+.miq-h1 { margin: 0; max-width: 11em; font-family: var(--miq-serif); font-size: clamp(2.6rem, 7vw, 5.25rem); font-weight: 500; line-height: 1.03; letter-spacing: -0.025em; color: var(--miq-ink); }
+.miq-hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 2.5rem 3.5rem; align-items: start; margin-top: clamp(1.75rem, 4vw, 3rem); }
+.miq-lede { margin: 0; max-width: 34rem; color: var(--miq-muted); font-size: 1.1875rem; line-height: 1.6; }
+.miq-lede strong { color: var(--miq-ink); font-weight: 600; }
+.miq-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 1.75rem; }
+
+/* flow figure */
+.miq-flow { margin: 0; padding: 1.25rem; background: var(--miq-surface); border: 1px solid var(--miq-rule); border-radius: var(--miq-radius); }
+.miq-flow-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.miq-tbl { border: 1px solid var(--miq-rule); border-radius: 2px; min-width: 0; }
+.miq-tbl-h { margin: 0; padding: 0.5rem 0.75rem; background: var(--miq-bg); border-bottom: 1px solid var(--miq-rule); font-size: 0.8125rem; font-weight: 600; }
+.miq-tbl ul { list-style: none; margin: 0; padding: 0.25rem 0; }
+.miq-tbl li { padding: 0.3rem 0.75rem; font-family: var(--miq-mono); font-size: 0.8125rem; overflow-wrap: anywhere; color: var(--miq-ink); }
+.miq-arch { position: relative; display: flex; align-items: center; justify-content: center; padding-inline: 1.25rem; text-align: center; }
+.miq-arch::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px solid var(--miq-muted); }
+.miq-arch::after { content: ""; position: absolute; right: 0; top: 50%; width: 7px; height: 7px; border-top: 1px solid var(--miq-muted); border-right: 1px solid var(--miq-muted); transform: translateY(-50%) rotate(45deg); }
+.miq-arch-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.5rem 0.4rem; background: var(--miq-surface); }
+.miq-node { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--miq-accent); border-radius: 50%; color: var(--miq-accent); font-family: var(--miq-mono); font-size: 0.8125rem; font-weight: 500; }
+.miq-arch-t { font-size: 0.875rem; font-weight: 600; line-height: 1.3; color: var(--miq-ink); }
+.miq-arch-s { font-size: 0.75rem; color: var(--miq-muted); line-height: 1.3; }
+.miq-flow-foot { display: flex; justify-content: center; margin-top: 1.1rem; }
+.miq-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.7rem; background: var(--miq-ok-tint); color: var(--miq-accent); border: 1px solid var(--miq-accent); border-radius: 999px; font-size: 0.8125rem; font-weight: 500; }
+.miq-flow-cap { margin-top: 0.9rem; color: var(--miq-muted); font-size: 0.8125rem; text-align: center; }
+
+/* stats */
+.miq-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin: clamp(2.5rem, 6vw, 3.5rem) 0 0; padding-top: 1.5rem; border-top: 1px solid var(--miq-rule); }
+.miq-stat { display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+.miq-stat dd { margin: 0; font-family: var(--miq-serif); font-size: 1.875rem; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--miq-ink); }
+.miq-stat dt { margin-top: 0.25rem; color: var(--miq-muted); font-size: 0.875rem; }
+
+/* sections */
+.miq-band { padding-block: clamp(3.5rem, 8vw, 6rem); border-top: 1px solid var(--miq-rule); }
+.miq-sec { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 1.25rem 3rem; }
+.miq-rail { margin: 0; padding-top: 0.55rem; color: var(--miq-muted); font-size: 0.9375rem; }
+.miq-h2 { margin: 0; max-width: 24ch; font-family: var(--miq-serif); font-size: clamp(1.75rem, 3.6vw, 2.75rem); font-weight: 500; line-height: 1.12; letter-spacing: -0.015em; color: var(--miq-ink); }
+.miq-sub { margin: 0.9rem 0 0; max-width: 36rem; color: var(--miq-muted); }
+
+/* steps */
+.miq-steps { list-style: none; margin: 2.5rem 0 0; padding: 0; }
+.miq-steps li { position: relative; display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 0.5rem 2rem; padding: 1.75rem 0 1.75rem 1.75rem; border-left: 1px solid var(--miq-rule); }
+.miq-steps li::before { content: ""; position: absolute; left: -5px; top: 2.2rem; width: 9px; height: 9px; background: var(--miq-bg); border: 1.5px solid var(--miq-accent); border-radius: 50%; }
+.miq-step-n { display: block; color: var(--miq-accent); font-size: 0.875rem; font-weight: 600; }
+.miq-step-k { display: block; color: var(--miq-muted); font-size: 0.875rem; }
+.miq-h3 { margin: 0 0 0.5rem; font-family: var(--miq-serif); font-size: 1.5rem; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; color: var(--miq-ink); }
+.miq-step-body p { margin: 0; max-width: 34rem; color: var(--miq-muted); }
+.miq-code { font-family: var(--miq-mono); font-size: 0.875em; background: var(--miq-surface); border: 1px solid var(--miq-rule); border-radius: 2px; padding: 0.05em 0.35em; }
+
+/* guarantee */
+.miq-eq { margin: 0; font-family: var(--miq-serif); font-size: clamp(1.5rem, 4vw, 2.75rem); font-weight: 500; line-height: 1.2; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; color: var(--miq-ink); }
+.miq-eq-op { padding-inline: 0.15em; color: var(--miq-muted); }
+.miq-ok  { color: var(--miq-accent); }
+.miq-bad { color: var(--miq-bad); }
+.miq-bar { display: flex; gap: 2px; height: 0.875rem; margin-top: 1.75rem; }
+.miq-bar-ok   { flex: 45 1 0; background: var(--miq-accent); }
+.miq-bar-bad  { flex: 15 1 0; background: var(--miq-bad); }
+.miq-bar-labels { display: flex; gap: 2px; margin-top: 0.5rem; font-size: 0.8125rem; color: var(--miq-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.miq-bar-labels span:first-child { flex: 45 1 0; }
+.miq-bar-labels span:last-child  { flex: 15 1 0; }
+.miq-note { margin: 1.5rem 0 0; max-width: 36rem; color: var(--miq-muted); }
+
+/* features */
+.miq-features { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
+.miq-features li { padding: 1rem 0; border-top: 1px solid var(--miq-rule); font-size: 1.0625rem; line-height: 1.45; color: var(--miq-ink); }
+
+/* roles */
+.miq-roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2.5rem; background: var(--miq-surface); border: 1px solid var(--miq-rule); border-radius: var(--miq-radius); }
+.miq-role { padding: 1.5rem; min-width: 0; }
+.miq-role + .miq-role { border-left: 1px solid var(--miq-rule); }
+.miq-role p { margin: 0.5rem 0 1.25rem; color: var(--miq-muted); }
+.miq-creds { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.35rem 1rem; margin: 0; padding-top: 1rem; border-top: 1px solid var(--miq-rule); font-family: var(--miq-mono); font-size: 0.875rem; }
+.miq-creds dt { color: var(--miq-muted); }
+.miq-creds dd { margin: 0; overflow-wrap: anywhere; color: var(--miq-ink); }
+.miq-demo-cta { margin-top: 2rem; }
+
+/* footer */
+.miq-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 2rem; padding-block: 1.75rem 2.5rem; border-top: 1px solid var(--miq-rule); color: var(--miq-muted); font-size: 0.875rem; }
+.miq-foot-l { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.miq-foot-r { display: flex; gap: 1.5rem; }
+.miq-foot-r a { text-decoration: none; color: var(--miq-muted); }
+.miq-foot-r a:hover { color: var(--miq-ink); }
+
+/* login */
+.miq-login-wrap { max-width: 28rem; margin-inline: auto; padding-block: clamp(3rem, 8vw, 5rem); }
+.miq-login-head { margin-bottom: 2.5rem; }
+.miq-login-h { margin: 0 0 0.3rem; font-family: var(--miq-serif); font-size: 2rem; font-weight: 500; letter-spacing: -0.02em; color: var(--miq-ink); }
+.miq-login-sub { margin: 0; color: var(--miq-muted); font-size: 0.9375rem; }
+.miq-field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.25rem; }
+.miq-label { font-size: 0.9375rem; font-weight: 500; color: var(--miq-ink); }
+.miq-input { height: 2.75rem; padding: 0 0.875rem; background: var(--miq-surface); color: var(--miq-ink); border: 1px solid var(--miq-rule); border-radius: var(--miq-radius); font-size: 1rem; font-family: var(--miq-sans); transition: border-color 0.15s, box-shadow 0.15s; outline: none; width: 100%; }
+.miq-input:focus { border-color: var(--miq-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--miq-accent) 15%, transparent); }
+.miq-input::placeholder { color: var(--miq-muted); }
+.miq-field-err { font-size: 0.8125rem; color: var(--miq-bad); margin-top: 0.25rem; }
+.miq-login-btn { width: 100%; margin-top: 0.5rem; justify-content: center; font-size: 1rem; min-height: 2.75rem; }
+.miq-demo-accounts { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid var(--miq-rule); }
+.miq-demo-label { margin: 0 0 1rem; font-size: 0.875rem; font-weight: 600; color: var(--miq-muted); letter-spacing: 0.03em; text-transform: uppercase; }
+.miq-demo-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.miq-demo-card { background: var(--miq-surface); border: 1px solid var(--miq-rule); border-radius: var(--miq-radius); padding: 1rem; text-align: left; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-family: var(--miq-sans); }
+.miq-demo-card:hover { border-color: var(--miq-accent); background: var(--miq-ok-tint); }
+.miq-demo-card-title { font-weight: 600; font-size: 0.9375rem; color: var(--miq-ink); display: block; margin-bottom: 0.25rem; }
+.miq-demo-card-desc  { font-size: 0.8125rem; color: var(--miq-muted); display: block; margin-bottom: 0.75rem; line-height: 1.4; }
+.miq-demo-card-cred  { font-family: var(--miq-mono); font-size: 0.8125rem; color: var(--miq-accent); display: block; }
+
+/* responsive */
+@media (max-width: 52rem) {
+  .miq-hero-grid { grid-template-columns: minmax(0, 1fr); }
+  .miq-sec       { grid-template-columns: minmax(0, 1fr); }
+  .miq-rail      { padding-top: 0; }
+  .miq-stats     { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .miq-features  { grid-template-columns: minmax(0, 1fr); }
+  .miq-steps li  { grid-template-columns: minmax(0, 1fr); }
+  .miq-roles     { grid-template-columns: minmax(0, 1fr); }
+  .miq-role + .miq-role { border-left: 0; border-top: 1px solid var(--miq-rule); }
+  .miq-demo-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 34rem) {
+  .miq-flow-grid { grid-template-columns: minmax(0, 1fr); }
+  .miq-arch { padding-block: 0.75rem; padding-inline: 0; }
+  .miq-arch::before { left: 50%; right: auto; top: 0; bottom: 0; border-top: 0; border-left: 1px solid var(--miq-muted); }
+  .miq-arch::after  { left: 50%; right: auto; top: auto; bottom: 0; transform: translateX(-50%) rotate(135deg); }
+}

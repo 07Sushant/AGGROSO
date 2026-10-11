@@ -1,16 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LogIn, Shield, Wrench } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ApiError } from "@/api/client";
 import { WakingIndicator } from "@/components/app/AppShell";
 import { ErrorBanner } from "@/components/app/ErrorBanner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useServerWake } from "@/hooks/useServerStatus";
 import { useAuth } from "@/lib/auth";
 
@@ -20,24 +16,28 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+function BrandIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={Math.round(size * 22 / 24)} viewBox="0 0 24 22" aria-hidden="true" focusable="false">
+      <rect x="1" y="3" width="8" height="16" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="15" y="3" width="8" height="16" rx="1" fill="var(--miq-accent)" stroke="var(--miq-accent)" strokeWidth="1.5" />
+      <path d="M10.5 11h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
 const DEMO_ACCOUNTS = [
   {
     username: "operator",
     password: "migrateiq-demo",
     label: "Operator",
-    description: "Creates projects, runs agent, executes",
-    icon: Wrench,
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 hover:bg-indigo-100 border-indigo-200",
+    desc: "Creates projects, runs agent, executes and retries.",
   },
   {
     username: "approver",
     password: "migrateiq-demo",
     label: "Approver",
-    description: "Approves plans, rolls back runs",
-    icon: Shield,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50 hover:bg-emerald-100 border-emerald-200",
+    desc: "Approves plans, rolls back runs.",
   },
 ];
 
@@ -66,127 +66,121 @@ export function LoginPage() {
     }
   });
 
-  const fillAccount = (username: string, password: string) => {
-    form.setValue("username", username, { shouldValidate: false });
-    form.setValue("password", password, { shouldValidate: false });
+  const fill = (username: string, password: string) => {
+    form.setValue("username", username);
+    form.setValue("password", password);
     form.clearErrors();
     setError(null);
   };
 
   return (
-    <main id="main" className="flex min-h-screen bg-slate-50">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-slate-900 p-12 text-white">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-sm font-bold text-white">MQ</span>
-          <span className="text-xl font-semibold tracking-tight">MigrateIQ</span>
-        </div>
-        <div className="space-y-6">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-widest text-indigo-400 mb-3">Agentic Data Migration</p>
-            <h1 className="text-4xl font-bold leading-tight text-white">
-              Plan, validate and<br />execute migrations<br />with confidence.
-            </h1>
-          </div>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-            An AI agent proposes your field mappings. Your team reviews, approves and executes — with full rollback support.
-          </p>
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            {[
-              { n: "12", label: "Transform rules" },
-              { n: "3-layer", label: "Idempotency" },
-              { n: "100%", label: "Audit trail" },
-              { n: "Live AI", label: "With fallback" },
-            ].map((s) => (
-              <div key={s.label} className="rounded-lg bg-slate-800 p-4">
-                <div className="text-2xl font-bold text-indigo-400">{s.n}</div>
-                <div className="text-xs text-slate-400 mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">MigrateIQ — Expert assessment demo</p>
-      </div>
+    <div className="miq-root">
+      {/* Minimal header */}
+      <header className="miq-top miq-wrap">
+        <Link className="miq-brand" to="/" aria-label="MigrateIQ home">
+          <BrandIcon />
+          <span>MigrateIQ</span>
+        </Link>
+        <Link to="/" className="miq-link" style={{ fontSize: "0.9375rem" }}>← Back to overview</Link>
+      </header>
 
-      {/* Right panel — login form */}
-      <div className="flex w-full items-center justify-center p-6 lg:w-1/2">
-        <div className="w-full max-w-sm space-y-8">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">MQ</span>
-            <span className="text-lg font-semibold">MigrateIQ</span>
-          </div>
-
-          <div className="space-y-1">
+      <main className="miq-wrap">
+        <div className="miq-login-wrap">
+          <div className="miq-login-head">
             <WakingIndicator waking={waking} />
-            <h2 className="text-2xl font-bold text-slate-900">Sign in</h2>
-            <p className="text-sm text-slate-500">Use a demo account below or enter credentials manually.</p>
+            <h1 className="miq-login-h">Sign in</h1>
+            <p className="miq-login-sub">Use a demo account below, or enter credentials manually.</p>
           </div>
 
-          {/* Quick-fill demo accounts */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">Demo accounts</p>
-            <div className="grid grid-cols-2 gap-3">
-              {DEMO_ACCOUNTS.map((a) => {
-                const Icon = a.icon;
-                return (
-                  <button
-                    key={a.username}
-                    type="button"
-                    onClick={() => fillAccount(a.username, a.password)}
-                  >
-                    <div className={`flex items-center gap-1.5 font-semibold text-sm ${a.color}`}>
-                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                      {a.label}
-                    </div>
-                    <span className="text-xs text-slate-500 leading-tight">{a.description}</span>
-                    <span className="font-mono text-[11px] text-slate-400">{a.username}</span>
-                  </button>
-                );
-              })}
+          {/* Quick-fill demo cards */}
+          <div className="miq-demo-accounts">
+            <p className="miq-demo-label">Demo accounts — click to fill</p>
+            <div className="miq-demo-cards">
+              {DEMO_ACCOUNTS.map((a) => (
+                <button
+                  key={a.username}
+                  type="button"
+                  className="miq-demo-card"
+                  onClick={() => fill(a.username, a.password)}
+                  aria-label={`Fill credentials for ${a.label}`}
+                >
+                  <span className="miq-demo-card-title">{a.label}</span>
+                  <span className="miq-demo-card-desc">{a.desc}</span>
+                  <span className="miq-demo-card-cred">{a.username} / {a.password}</span>
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Form */}
-          <form className="space-y-4" onSubmit={onSubmit} noValidate>
-            <div className="space-y-1.5">
-              <Label htmlFor="username">Username</Label>
-              <Input
+          <form
+            style={{ marginTop: "2rem", paddingTop: "1.75rem", borderTop: "1px solid var(--miq-rule)" }}
+            onSubmit={onSubmit}
+            noValidate
+          >
+            <div className="miq-field">
+              <label className="miq-label" htmlFor="username">Username</label>
+              <input
                 id="username"
+                className="miq-input"
                 autoComplete="username"
                 placeholder="operator or approver"
                 aria-invalid={!!form.formState.errors.username}
-                aria-describedby="username-error"
+                aria-describedby={form.formState.errors.username ? "username-error" : undefined}
                 {...form.register("username")}
               />
               {form.formState.errors.username ? (
-                <p id="username-error" className="text-xs text-red-600">{form.formState.errors.username.message}</p>
+                <span id="username-error" className="miq-field-err">{form.formState.errors.username.message}</span>
               ) : null}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
+
+            <div className="miq-field">
+              <label className="miq-label" htmlFor="password">Password</label>
+              <input
                 id="password"
                 type="password"
+                className="miq-input"
                 autoComplete="current-password"
                 placeholder="migrateiq-demo"
                 aria-invalid={!!form.formState.errors.password}
-                aria-describedby="password-error"
+                aria-describedby={form.formState.errors.password ? "password-error" : undefined}
                 {...form.register("password")}
               />
               {form.formState.errors.password ? (
-                <p id="password-error" className="text-xs text-red-600">{form.formState.errors.password.message}</p>
+                <span id="password-error" className="miq-field-err">{form.formState.errors.password.message}</span>
               ) : null}
             </div>
+
             {error && !(error instanceof ApiError && error.code === "UNAUTHENTICATED") ? (
-              <ErrorBanner error={error} title="Sign-in failed" />
+              <div style={{ marginBottom: "1rem" }}>
+                <ErrorBanner error={error} title="Sign-in failed" />
+              </div>
             ) : null}
-            <Button type="submit" className="w-full" loading={form.formState.isSubmitting}>
-              <LogIn aria-hidden="true" /> Sign in
-            </Button>
+
+            <button
+              type="submit"
+              className="miq-btn miq-login-btn"
+              disabled={form.formState.isSubmitting}
+              aria-busy={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
+            </button>
           </form>
         </div>
-      </div>
-    </main>
+      </main>
+
+      <footer className="miq-foot miq-wrap">
+        <div className="miq-foot-l">
+          <span className="miq-brand" style={{ fontSize: "1rem" }}>
+            <BrandIcon size={20} />
+            <span>MigrateIQ</span>
+          </span>
+          <span>Expert assessment submission</span>
+        </div>
+        <div className="miq-foot-r">
+          <a href="https://github.com/07Sushant/AGGROSO" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </footer>
+    </div>
   );
 }
