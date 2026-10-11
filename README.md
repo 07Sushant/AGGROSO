@@ -8,9 +8,9 @@ MigrateIQ is a migration planning and reconciliation workbench. An AI agent prop
 |---|---|
 | Frontend (React on Vercel) | https://aggroso-ten.vercel.app |
 | Login page | https://aggroso-ten.vercel.app/login |
-| Backend API (FastAPI on a Hugging Face Space) | https://isushant-shl-assessment-recommender.hf.space |
-| API docs (OpenAPI) | https://isushant-shl-assessment-recommender.hf.space/api/docs |
-| Health | https://isushant-shl-assessment-recommender.hf.space/api/health |
+| Backend API (FastAPI on a Hugging Face Space) | https://isushant-aggroso.hf.space |
+| API docs (OpenAPI) | https://isushant-aggroso.hf.space/api/docs |
+| Health | https://isushant-aggroso.hf.space/api/health |
 
 ### Demo login credentials
 
@@ -244,7 +244,7 @@ Neon (ap-southeast-1) on the pooled endpoint, with `prepare_threshold=None` for 
 
 ### Frontend: Vercel
 
-Import the repository with root directory `frontend`, framework preset Vite, and environment variable `VITE_API_BASE_URL=https://isushant-shl-assessment-recommender.hf.space`. `vercel.json` rewrites all routes to `index.html` and sets security headers.
+Import the repository with root directory `frontend`, framework preset Vite, and environment variable `VITE_API_BASE_URL=https://isushant-aggroso.hf.space`. `vercel.json` rewrites all routes to `index.html` and sets security headers.
 
 ## Completed scope
 

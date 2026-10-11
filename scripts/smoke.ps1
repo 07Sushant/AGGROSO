@@ -2,7 +2,7 @@
 .SYNOPSIS
   API-level end-to-end smoke test (no LLM calls, so it spends no AI quota).
 .EXAMPLE
-  .\scripts\smoke.ps1 -BaseUrl https://isushant-shl-assessment-recommender.hf.space
+  .\scripts\smoke.ps1 -BaseUrl https://isushant-aggroso.hf.space
 #>
 param(
     [string]$BaseUrl = "http://localhost:8000",

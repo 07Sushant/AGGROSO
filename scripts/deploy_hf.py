@@ -29,10 +29,10 @@ APP_SECRETS = ("GROQ_API_KEY", "GEMINI_API_KEY", "DATABASE_URL")
 SPACE_VARIABLES = {
     "APP_ENV": "production",
     "FAULT_INJECTION_ENABLED": "true",
-    "CORS_ORIGINS": "http://localhost:5173",
+    "CORS_ORIGINS": "https://aggroso-ten.vercel.app",
     # Vercel production and preview domains for this project. Tighten to the exact production
     # domain once it is known.
-    "CORS_ORIGIN_REGEX": r"^https://([a-z0-9-]+\.)?vercel\.app$",
+    "CORS_ORIGIN_REGEX": r"^https://aggroso-ten\.vercel\.app$",
 }
 IGNORE_PATTERNS = [
     "tests/*",

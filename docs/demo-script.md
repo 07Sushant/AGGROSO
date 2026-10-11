@@ -1,6 +1,6 @@
 # Demo script (about 5 minutes)
 
-Frontend: `<vercel-url>`. Backend: https://isushant-shl-assessment-recommender.hf.space. Both demo accounts use the password `migrateiq-demo`.
+Frontend: `https://aggroso-ten.vercel.app`. Backend: https://isushant-aggroso.hf.space. Both demo accounts use the password `migrateiq-demo`.
 
 If the header shows "Waking the server", wait up to a minute; the free Space was asleep.
 
