@@ -22,8 +22,8 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.agent import prompts
+from app.agent.compact_plan import validate_compact
 from app.agent.gateway import EngineFailure, Gateway, LLMResult, ToolCall
-from app.agent.plan_validator import validate_plan
 from app.agent.tools import (
     ALLOWED_TOOLS,
     SUBMIT_PLAN,
@@ -199,21 +199,21 @@ class AgentRunner:
             {"role": "system", "content": prompts.SYSTEM_PROMPT},
             {"role": "user", "content": task},
         ]
-        for round_no in range(2):  # the first submission and at most one repair
+        for round_no in range(3):  # the first submission and at most two repairs
             res = self._llm(alias, messages, tools, FORCE_SUBMIT)
             submits = [tc for tc in res.tool_calls if tc.name == SUBMIT_PLAN]
             for tc in res.tool_calls:
                 if tc.name != SUBMIT_PLAN:
-                    self._handle(alias, tc, 1)  # recorded and rejected; nothing else runs
+                    self._handle(alias, tc, 2)  # recorded and rejected; nothing else runs
             if not submits:
                 feedback = "No submit_plan call was made."
                 previous: dict[str, Any] = {}
             else:
-                content, plan = self._handle(alias, submits[0], 1)
+                content, plan = self._handle(alias, submits[0], 2)
                 if plan is not None:
                     return plan
                 feedback, previous = content, submits[0].arguments
-            if round_no == 0:
+            if round_no < 2:
                 # The repair is a fresh, smaller conversation (schemas, registry, the rejected
                 # plan and the validator errors), so it fits the primary's per-minute input cap.
                 # No assistant message is replayed, so no provider signature is needed.
@@ -224,8 +224,8 @@ class AgentRunner:
                     {"role": "user", "content": prompts.compact_repair_task(
                         reference, previous, feedback)},
                 ]
-        raise AgentFailure("PLAN_INVALID", "The agent did not produce a valid plan after one "
-                           "repair round; see the trace for the validator errors.")
+        raise AgentFailure("PLAN_INVALID", "The agent did not produce a valid plan after two "
+                           "repair rounds; see the trace for the validator errors.")
 
     # ------------------------------------------------------------------ one LLM call
     def _remaining(self) -> float:
@@ -296,7 +296,7 @@ class AgentRunner:
 
     def _submit(self, alias: str, tc: ToolCall, max_repairs: int
                 ) -> tuple[str, dict[str, Any] | None]:
-        validation = validate_plan(tc.arguments)
+        validation = validate_compact(tc.arguments)
         if validation.valid and validation.plan is not None:
             self.rec.add("validation", engine=alias, tool_name=SUBMIT_PLAN,
                          result={"accepted": True, "warnings": validation.warnings})

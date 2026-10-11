@@ -23,6 +23,7 @@ from collections import deque
 from collections.abc import Callable
 from typing import Any
 
+from app.agent.compact_plan import to_compact
 from app.agent.engines import Engine
 from app.agent.gateway import LLMResult, ProviderError, ToolCall, parse_arguments
 from app.services import inputs
@@ -46,7 +47,8 @@ DEFAULT_VISION_RESULT: dict[str, Any] = {
 
 
 def reference_plan() -> dict[str, Any]:
-    return copy.deepcopy(inputs.reference_plan()["plan"])
+    """The reference plan in the compact shape the model submits."""
+    return to_compact(copy.deepcopy(inputs.reference_plan()["plan"]))
 
 
 def tool_call(name: str, arguments: dict[str, Any] | str | None = None) -> dict[str, Any]:

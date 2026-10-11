@@ -205,7 +205,7 @@ def test_injection_record_does_not_change_the_plan(client, operator_headers):  #
         if m["target_field"] != "email":
             m["source_fields"] = ["email_addr"]
             m["transforms"] = []
-    obey["mappings"].append({**copy.deepcopy(obey["mappings"][3]), "id": "m_email_2"})
+    obey["mappings"].append(copy.deepcopy(obey["mappings"][3]))
     mock_client.queue("primary",
                       calls(tool_call("sample_source_records", {"limit": 5, "offset": 55})),
                       calls(tool_call("submit_plan", obey)))
@@ -221,12 +221,38 @@ def test_injection_record_does_not_change_the_plan(client, operator_headers):  #
     assert "DUPLICATE_TARGET_MAPPING" in codes and "TYPE_MISMATCH" in codes
     version = client.get(f"/api/plan-versions/{run['result_version_id']}",
                          headers=operator_headers).json()
-    assert version["plan"]["mappings"] == load_reference_plan_mappings(client, operator_headers)
+    assert _decisions(version["plan"]) == _decisions(load_reference_plan(client, operator_headers))
 
 
-def load_reference_plan_mappings(client: TestClient, op: dict) -> list:
-    pid = project_id(client, op)
-    return load_reference(client, op, pid)["plan"]["mappings"]
+def load_reference_plan(client: TestClient, op: dict) -> dict:
+    return load_reference(client, op, project_id(client, op))["plan"]
+
+
+def _decisions(plan: dict) -> list:
+    return [(m["target_field"], m["source_fields"], m["transforms"], m["risks"])
+            for m in plan["mappings"]]
+
+
+def test_compact_plan_expands_into_the_full_contract():  # type: ignore[no-untyped-def]
+    from app.agent.compact_plan import CompactPlan, expand, validate_compact
+    from app.agent.plan_validator import validate_plan
+    from app.services import inputs
+
+    full = validate_plan(inputs.reference_plan()["plan"]).to_dict()["plan"]  # normalised
+    compact = reference_plan()
+    assert "unmapped_source_fields" not in compact and "id" not in compact["mappings"][0]
+    assert len(json.dumps(compact)) < len(json.dumps(full))
+    assert validate_compact(compact).valid
+    plan = expand(CompactPlan.model_validate(compact))
+    assert [u["field"] for u in plan["unmapped_source_fields"]] == ["fax", "notes"]
+    assert [u["field"] for u in plan["unmapped_target_fields"]] == ["account_tier"]
+    assert plan["unmapped_target_fields"][0]["proposed"]["name"] == "constant"
+    assert {m["id"] for m in plan["mappings"]} >= {"m_email", "m_account_tier"}
+    assert all(m["on_error"] == "quarantine" for m in plan["mappings"])
+    assert _decisions(plan) == _decisions(full)
+    assert plan["clarification_questions"] == full["clarification_questions"]
+    bad = {**compact, "mappings": compact["mappings"] + [{"target_field": "x", "foo": 1}]}
+    assert {e["code"] for e in validate_compact(bad).errors} == {"SCHEMA_INVALID"}
 
 
 def test_revise_feeds_answers_back_and_links_the_parent(client, operator_headers):  # type: ignore[no-untyped-def]

@@ -49,11 +49,14 @@ class Settings(BaseSettings):
     primary_llm_base_url: str = "https://api.groq.com/openai/v1"
     primary_llm_model: str = "qwen/qwen3.8-27b"
     backup_llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
-    backup_llm_model: str = "gemini-3.8-flash"
+    # flash-lite: the free tier's daily request cap for the full flash model is 20.
+    backup_llm_model: str = "gemini-3.5-flash-lite"
     # Provider extras as JSON objects (sent through extra_body). The primary hides its reasoning
     # text so it can never leak into tool arguments or JSON output.
-    primary_llm_extra_body: str = '{"reasoning_format": "hidden"}'
-    backup_llm_extra_body: str = ""
+    # Reasoning off on the primary: hidden reasoning still counts against the free tier's
+    # tokens-per-minute cap. Low effort on the backup keeps its latency bounded.
+    primary_llm_extra_body: str = '{"reasoning_effort": "default", "reasoning_format": "hidden"}'
+    backup_llm_extra_body: str = '{"reasoning_effort": "low"}'
     llm_timeout_s: float = 30.0
     backup_llm_timeout_s: float = 120.0
     llm_probe_timeout_s: float = 20.0
@@ -62,15 +65,17 @@ class Settings(BaseSettings):
     llm_retry_delay_s: float = 1.0
     # On a 429 the gateway waits for the provider's Retry-After when it is at most this long
     # (the primary's free tier has a per-minute input-token cap); otherwise LLM_RETRY_DELAY_S.
-    llm_rate_limit_max_wait_s: float = 30.0
+    llm_rate_limit_max_wait_s: float = 60.0
 
     # --- agent (spec §7.1, §7.3) ---
     agent_max_steps: int = 12  # LLM turns in full mode
     agent_wall_s: float = 150.0  # full mode
     agent_compact_wall_s: float = 300.0
     agent_max_repairs: int = 2  # full mode; compact mode allows 1
-    primary_max_completion_tokens: int = 8192
-    backup_max_completion_tokens: int = 16384
+    # The primary's free tier caps output at 1,000 tokens per minute, so the plan the model
+    # writes is compact (see app/agent/compact_plan.py) and output is bounded tightly.
+    primary_max_completion_tokens: int = 3000
+    backup_max_completion_tokens: int = 4096
     agent_runs_per_project_hour: int = 5
     agent_runs_global_hour: int = 40
     schema_imports_global_hour: int = 20

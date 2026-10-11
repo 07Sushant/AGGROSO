@@ -10,6 +10,7 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from app.agent.compact_plan import to_compact
 from app.agent.gateway import get_gateway
 from app.agent.runner import AgentFailure, AgentRunner
 from app.config import get_settings
@@ -99,7 +100,8 @@ def _revision_text(db: Session, run: AgentRun, use_answers: bool) -> str | None:
     questions = {q["id"]: q["question"] for q in base.plan.get("clarification_questions", [])}
     items = [{"question_id": qid, "question": questions.get(qid, ""), "answer": answer}
              for qid, answer in sorted(answers.items())]
-    return prompts.revision_block(base.plan, items, base.change_note)
+    # The base plan goes in the compact shape the model writes, which keeps the prompt small.
+    return prompts.revision_block(to_compact(base.plan), items, base.change_note)
 
 
 def _fail(run_id: int, code: str, message: str, started: float) -> None:
