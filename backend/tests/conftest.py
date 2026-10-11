@@ -40,6 +40,16 @@ from app.main import create_app  # noqa: E402
 from app.models import Base  # noqa: E402
 
 DEMO_PASSWORD = "migrateiq-demo"
+IS_POSTGRES = _TEST_DB_URL.startswith(("postgresql", "postgres"))
+
+
+def pytest_collection_modifyitems(config, items):  # type: ignore[no-untyped-def]
+    if IS_POSTGRES:
+        return
+    skip = pytest.mark.skip(reason="needs PostgreSQL (runs in CI)")
+    for item in items:
+        if "postgres" in item.keywords:
+            item.add_marker(skip)
 
 
 @pytest.fixture(scope="session")

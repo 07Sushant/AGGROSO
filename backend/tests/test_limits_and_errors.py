@@ -83,6 +83,17 @@ def test_inputs_are_served(client: TestClient, operator_headers, path):  # type:
     assert res.status_code == 200 and res.json()
 
 
+def test_overflow_dataset_is_refused_with_limit_exceeded(client: TestClient, operator_headers):  # type: ignore[no-untyped-def]
+    res = client.post("/api/projects", json={"name": "too big", "dataset_key": "overflow_501"},
+                      headers=operator_headers)
+    assert res.status_code == 422
+    err = _assert_envelope(res, "LIMIT_EXCEEDED")
+    assert err["details"] == {"record_count": 501, "max_source_records": 500}
+    ok = client.post("/api/projects", json={"name": "max", "dataset_key": "stress_500"},
+                     headers=operator_headers)
+    assert ok.status_code == 201 and ok.json()["record_count"] == 500
+
+
 def test_datasets_flag_the_overflow_limit(client: TestClient, operator_headers):  # type: ignore[no-untyped-def]
     res = client.get("/api/inputs/datasets", headers=operator_headers)
     by_key = {d["key"]: d for d in res.json()}
