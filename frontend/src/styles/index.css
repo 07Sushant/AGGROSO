@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (spec §8.0). This is the only place colours live; Tailwind maps them in
+ * tailwind.config.js. Values are HSL channels so opacity modifiers work.
+ */
+@layer base {
+  :root {
+    /* Surfaces */
+    --bg: 210 40% 98%; /* slate-50 #f8fafc */
+    --surface: 0 0% 100%; /* white */
+    --surface-muted: 210 40% 96.1%; /* slate-100 */
+    --border: 214.3 31.8% 91.4%; /* slate-200 */
+
+    /* Text */
+    --text: 222.2 47.4% 11.2%; /* slate-900 */
+    --text-muted: 215.4 16.3% 46.9%; /* slate-500, AA on white */
+
+    /* Brand */
+    --primary: 243 75.4% 58.6%; /* indigo-600 #4f46e5 */
+    --primary-fg: 0 0% 100%;
+    --ring: 238.7 83.5% 66.7%; /* indigo-500 */
+
+    /* Status: base (icons, borders), subtle (backgrounds), strong (AA text on subtle) */
+    --success: 161.4 93.5% 30.4%; /* emerald-600 */
+    --success-subtle: 151.8 81% 95.9%;
+    --success-strong: 163.1 94.5% 24.3%;
+    --warning: 32.1 94.6% 43.7%; /* amber-600 */
+    --warning-subtle: 48 100% 96.1%;
+    --warning-strong: 26 90.5% 37.1%;
+    --danger: 346.8 77.2% 49.8%; /* rose-600 */
+    --danger-subtle: 355.7 100% 97.3%;
+    --danger-strong: 345.3 82.7% 40.8%;
+    --info: 200.4 98% 39.4%; /* sky-600 */
+    --info-subtle: 204 100% 97.1%;
+    --info-strong: 201.3 96.3% 32.2%;
+
+    --radius: 10px; /* cards */
+    --radius-control: 8px; /* inputs, buttons */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-surface;
+  }
+}
+
+@layer components {
+  /* Glass is only for floating layers: dialogs, sheets, toasts, sticky header. */
+  .glass {
+    @apply bg-surface/80 backdrop-blur-md border border-border;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
