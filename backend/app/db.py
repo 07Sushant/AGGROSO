@@ -10,7 +10,9 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import Any
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import Insert, Table, create_engine, event
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -27,9 +29,15 @@ def build_engine(url: str, *, for_tests: bool = False) -> Engine:
 
         @event.listens_for(engine, "connect")
         def _sqlite_pragmas(dbapi_conn: Any, _record: Any) -> None:  # pragma: no cover - trivial
+            # Let SQLAlchemy own BEGIN/COMMIT so SAVEPOINTs work with pysqlite.
+            dbapi_conn.isolation_level = None
             cur = dbapi_conn.cursor()
             cur.execute("PRAGMA foreign_keys=ON")
             cur.close()
+
+        @event.listens_for(engine, "begin")
+        def _sqlite_begin(conn: Any) -> None:  # pragma: no cover - trivial
+            conn.exec_driver_sql("BEGIN")
 
         return engine
 
@@ -69,6 +77,15 @@ def session_factory() -> sessionmaker[Session]:
         init_engine()
     assert _SessionLocal is not None
     return _SessionLocal
+
+
+def insert_ignore(table: Table, dialect_name: str) -> Insert:
+    """``INSERT ... ON CONFLICT DO NOTHING`` (no conflict target, so every unique key counts)."""
+    if dialect_name == "postgresql":
+        return pg_insert(table).on_conflict_do_nothing()
+    if dialect_name == "sqlite":
+        return sqlite_insert(table).on_conflict_do_nothing()
+    raise NotImplementedError(f"insert_ignore is not implemented for {dialect_name}")
 
 
 def get_db() -> Iterator[Session]:
