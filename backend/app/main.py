@@ -23,6 +23,7 @@ from app.api import (
     routes_plans,
     routes_projects,
     routes_runs,
+    routes_schema_imports,
 )
 from app.config import Settings, get_settings
 from app.db import init_engine, session_factory
@@ -93,6 +94,7 @@ def create_app(settings: Settings | None = None, *, init_db: bool = True) -> Fas
         routes_plans.router,
         routes_runs.router,
         routes_agent.router,
+        routes_schema_imports.router,
     ):
         app.include_router(router, prefix="/api")
 

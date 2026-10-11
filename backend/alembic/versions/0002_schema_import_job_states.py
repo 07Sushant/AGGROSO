@@ -23,8 +23,8 @@ _OLD = "status IN ('PROPOSED', 'APPROVED', 'REJECTED')"
 
 def upgrade() -> None:
     with op.batch_alter_table('schema_imports', schema=None) as batch_op:
-        batch_op.drop_constraint('ck_schema_imports_status', type_='check')
-        batch_op.create_check_constraint('ck_schema_imports_status', _NEW)
+        batch_op.drop_constraint('status', type_='check')
+        batch_op.create_check_constraint('status', _NEW)
         batch_op.add_column(sa.Column('error_code', sa.String(length=64), nullable=True))
 
 
@@ -32,5 +32,5 @@ def downgrade() -> None:
     op.execute("DELETE FROM schema_imports WHERE status IN ('EXTRACTING', 'FAILED')")
     with op.batch_alter_table('schema_imports', schema=None) as batch_op:
         batch_op.drop_column('error_code')
-        batch_op.drop_constraint('ck_schema_imports_status', type_='check')
-        batch_op.create_check_constraint('ck_schema_imports_status', _OLD)
+        batch_op.drop_constraint('status', type_='check')
+        batch_op.create_check_constraint('status', _OLD)

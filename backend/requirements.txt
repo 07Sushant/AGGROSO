@@ -12,3 +12,4 @@ PyJWT==2.15.1
 structlog==26.1.0
 openai==1.109.1
 httpx==0.28.1
+python-multipart==0.0.20

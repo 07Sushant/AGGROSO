@@ -64,7 +64,7 @@ AGENT_RUN_KINDS = ("propose", "revise")
 AGENT_RUN_STATUSES = ("QUEUED", "RUNNING", "SUCCEEDED", "FAILED")
 ENGINES = ("primary", "backup", "mock")
 AGENT_STEP_KINDS = ("llm_call", "tool_call", "validation", "fallback")
-SCHEMA_IMPORT_STATUSES = ("PROPOSED", "APPROVED", "REJECTED")
+SCHEMA_IMPORT_STATUSES = ("EXTRACTING", "PROPOSED", "APPROVED", "REJECTED", "FAILED")
 
 
 class Base(DeclarativeBase):
@@ -408,6 +408,7 @@ class SchemaImport(Base):
     normalized: Mapped[dict[str, Any] | None] = mapped_column(JSONType)
     findings: Mapped[list[Any] | None] = mapped_column(JSONType)
     engine: Mapped[str | None] = mapped_column(String(20))
+    error_code: Mapped[str | None] = mapped_column(String(64))
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
