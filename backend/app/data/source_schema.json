@@ -1,0 +1,73 @@
+{
+  "entity": "legacy_customers",
+  "description": "Customer export from the legacy CRM. Every value is text, as in a CSV export; empty values are empty strings.",
+  "primary_key": "cust_id",
+  "fields": [
+    {
+      "name": "cust_id",
+      "type": "string",
+      "nullable": false,
+      "description": "Legacy CRM customer identifier."
+    },
+    {
+      "name": "full_name",
+      "type": "string",
+      "nullable": true,
+      "description": "Customer name as entered by sales staff."
+    },
+    {
+      "name": "email_addr",
+      "type": "string",
+      "nullable": true,
+      "description": "Primary contact email."
+    },
+    {
+      "name": "phone",
+      "type": "string",
+      "nullable": true,
+      "description": "Contact phone number, free text."
+    },
+    {
+      "name": "signup_dt",
+      "type": "string",
+      "nullable": true,
+      "description": "Date the customer signed up, free text."
+    },
+    {
+      "name": "country",
+      "type": "string",
+      "nullable": true,
+      "description": "Country, free text."
+    },
+    {
+      "name": "status_cd",
+      "type": "string",
+      "nullable": true,
+      "description": "Account status code."
+    },
+    {
+      "name": "credit_limit",
+      "type": "string",
+      "nullable": true,
+      "description": "Approved credit limit, free text."
+    },
+    {
+      "name": "newsletter",
+      "type": "string",
+      "nullable": true,
+      "description": "Newsletter opt-in flag."
+    },
+    {
+      "name": "fax",
+      "type": "string",
+      "nullable": true,
+      "description": "Fax number (legacy)."
+    },
+    {
+      "name": "notes",
+      "type": "string",
+      "nullable": true,
+      "description": "Free-text notes from the account manager."
+    }
+  ]
+}

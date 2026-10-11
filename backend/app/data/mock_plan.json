@@ -1,0 +1,434 @@
+{
+  "description": "Human-authored reference plan for legacy_customers -> customers, with the reference answers to its clarification questions.",
+  "plan": {
+    "key": {
+      "source_field": "cust_id",
+      "target_field": "legacy_id"
+    },
+    "mappings": [
+      {
+        "id": "m_legacy_id",
+        "target_field": "legacy_id",
+        "source_fields": [
+          "cust_id"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "high",
+        "rationale": "cust_id is the legacy primary key.",
+        "risks": []
+      },
+      {
+        "id": "m_first_name",
+        "target_field": "first_name",
+        "source_fields": [
+          "full_name"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "split_name",
+            "params": {
+              "part": "first"
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "full_name mixes 'First Last' and 'LAST, First'; split_name handles both.",
+        "risks": [
+          {
+            "id": "r_name_split",
+            "severity": "medium",
+            "text": "Single-word names yield no last name and are quarantined (Q1)."
+          }
+        ]
+      },
+      {
+        "id": "m_last_name",
+        "target_field": "last_name",
+        "source_fields": [
+          "full_name"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "split_name",
+            "params": {
+              "part": "last"
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "Same source as first_name; the last token or the part before the comma.",
+        "risks": []
+      },
+      {
+        "id": "m_email",
+        "target_field": "email",
+        "source_fields": [
+          "email_addr"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "lowercase"
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "high",
+        "rationale": "Emails contain stray spaces and upper case; normalise before the unique check.",
+        "risks": [
+          {
+            "id": "r_email_dupes",
+            "severity": "high",
+            "text": "Missing, malformed or duplicate emails are quarantined; the target requires a unique email."
+          }
+        ]
+      },
+      {
+        "id": "m_phone",
+        "target_field": "phone_e164",
+        "source_fields": [
+          "phone"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "normalize_phone_e164",
+            "params": {
+              "default_country": "US"
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "Five phone shapes; numbers without a country code assume US (Q3).",
+        "risks": [
+          {
+            "id": "r_phone_default",
+            "severity": "medium",
+            "text": "Numbers without a country code are assumed to be US numbers."
+          }
+        ]
+      },
+      {
+        "id": "m_signup_date",
+        "target_field": "signup_date",
+        "source_fields": [
+          "signup_dt"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "parse_date",
+            "params": {
+              "formats": [
+                "%Y-%m-%d",
+                "%d/%m/%Y",
+                "%b %d, %Y",
+                "%Y%m%d"
+              ]
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "Four date formats were observed; impossible dates are quarantined.",
+        "risks": [
+          {
+            "id": "r_dates",
+            "severity": "medium",
+            "text": "dd/mm/yyyy is assumed for slash dates; unparseable dates are quarantined."
+          }
+        ]
+      },
+      {
+        "id": "m_country",
+        "target_field": "country_code",
+        "source_fields": [
+          "country"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "uppercase"
+          },
+          {
+            "name": "map_values",
+            "params": {
+              "mapping": {
+                "US": "US",
+                "USA": "US",
+                "U.S.": "US",
+                "U.S.A.": "US",
+                "UNITED STATES": "US",
+                "UNITED STATES OF AMERICA": "US",
+                "IN": "IN",
+                "INDIA": "IN",
+                "UK": "GB",
+                "U.K.": "GB",
+                "GB": "GB",
+                "UNITED KINGDOM": "GB",
+                "GREAT BRITAIN": "GB",
+                "CA": "CA",
+                "CANADA": "CA",
+                "DE": "DE",
+                "GERMANY": "DE",
+                "FR": "FR",
+                "FRANCE": "FR",
+                "AU": "AU",
+                "AUSTRALIA": "AU",
+                "SG": "SG",
+                "SINGAPORE": "SG"
+              },
+              "strict": true
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "high",
+        "rationale": "Country names and variants map to ISO-2; unknown countries are quarantined.",
+        "risks": []
+      },
+      {
+        "id": "m_status",
+        "target_field": "status",
+        "source_fields": [
+          "status_cd"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "uppercase"
+          },
+          {
+            "name": "map_values",
+            "params": {
+              "mapping": {
+                "A": "active",
+                "I": "inactive",
+                "S": "suspended"
+              },
+              "strict": true
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "Status codes A/I/S; S is read as suspended (Q4).",
+        "risks": []
+      },
+      {
+        "id": "m_credit_limit",
+        "target_field": "credit_limit_cents",
+        "source_fields": [
+          "credit_limit"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "parse_currency_to_cents",
+            "params": {
+              "null_values": [
+                "N/A",
+                "NA"
+              ]
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "medium",
+        "rationale": "Currency strings become integer cents; N/A becomes null (Q2).",
+        "risks": [
+          {
+            "id": "r_credit_na",
+            "severity": "low",
+            "text": "N/A credit limits are stored as null, not zero."
+          }
+        ]
+      },
+      {
+        "id": "m_marketing_opt_in",
+        "target_field": "marketing_opt_in",
+        "source_fields": [
+          "newsletter"
+        ],
+        "transforms": [
+          {
+            "name": "trim"
+          },
+          {
+            "name": "to_boolean",
+            "params": {
+              "true_values": [
+                "Y",
+                "YES",
+                "TRUE",
+                "1"
+              ],
+              "false_values": [
+                "N",
+                "NO",
+                "FALSE",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "default_if_empty",
+            "params": {
+              "value": false
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "high",
+        "rationale": "Y/N flag; blank means no consent, so it defaults to false.",
+        "risks": []
+      },
+      {
+        "id": "m_account_tier",
+        "target_field": "account_tier",
+        "source_fields": [],
+        "transforms": [
+          {
+            "name": "constant",
+            "params": {
+              "value": "standard"
+            }
+          }
+        ],
+        "on_error": "quarantine",
+        "confidence": "low",
+        "rationale": "No source column; every migrated customer starts on the standard tier (Q5).",
+        "risks": []
+      }
+    ],
+    "unmapped_source_fields": [
+      {
+        "field": "fax",
+        "reason": "no target column",
+        "decision": "drop"
+      },
+      {
+        "field": "notes",
+        "reason": "free text with no target column; treated as data only",
+        "decision": "drop"
+      }
+    ],
+    "unmapped_target_fields": [
+      {
+        "field": "account_tier",
+        "reason": "no source column",
+        "proposed": {
+          "name": "constant",
+          "params": {
+            "value": "standard"
+          }
+        }
+      }
+    ],
+    "incompatibilities": [
+      {
+        "field": "credit_limit",
+        "issue": "currency string -> integer cents",
+        "severity": "medium"
+      },
+      {
+        "field": "signup_dt",
+        "issue": "free-text dates in several formats -> date",
+        "severity": "medium"
+      },
+      {
+        "field": "full_name",
+        "issue": "one name field -> first_name + last_name",
+        "severity": "medium"
+      }
+    ],
+    "clarification_questions": [
+      {
+        "id": "Q1",
+        "question": "Some customers have a single-word name (for example a mononym). last_name is required. Quarantine them or use a placeholder?",
+        "related_fields": [
+          "full_name"
+        ],
+        "options": [
+          "quarantine",
+          "use '-' placeholder"
+        ]
+      },
+      {
+        "id": "Q2",
+        "question": "credit_limit sometimes says 'N/A'. Store null or zero?",
+        "related_fields": [
+          "credit_limit"
+        ],
+        "options": [
+          "null",
+          "zero"
+        ]
+      },
+      {
+        "id": "Q3",
+        "question": "Phone numbers without a country code: which country should be assumed?",
+        "related_fields": [
+          "phone"
+        ],
+        "options": [
+          "US",
+          "quarantine"
+        ]
+      },
+      {
+        "id": "Q4",
+        "question": "Does status code 'S' mean suspended or inactive?",
+        "related_fields": [
+          "status_cd"
+        ],
+        "options": [
+          "suspended",
+          "inactive"
+        ]
+      },
+      {
+        "id": "Q5",
+        "question": "account_tier has no source column. Which tier should migrated customers get?",
+        "related_fields": [],
+        "options": [
+          "standard",
+          "gold"
+        ]
+      }
+    ],
+    "risk_summary": "15 of 60 sample records are expected to be quarantined: missing, malformed or duplicate emails, duplicate ids, impossible dates, unknown codes and invalid credit limits. One record carries instruction-like text in notes; notes is dropped and treated as data."
+  },
+  "reference_answers": {
+    "Q1": "quarantine",
+    "Q2": "null",
+    "Q3": "US",
+    "Q4": "suspended",
+    "Q5": "standard"
+  }
+}

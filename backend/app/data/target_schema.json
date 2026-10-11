@@ -1,0 +1,122 @@
+{
+  "entity": "customers",
+  "description": "Normalised customer table in the target store (insert-only).",
+  "key": "legacy_id",
+  "columns": [
+    {
+      "name": "legacy_id",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": true,
+      "description": "Identifier carried over from the legacy CRM.",
+      "max_length": 64
+    },
+    {
+      "name": "first_name",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Given name.",
+      "max_length": 120
+    },
+    {
+      "name": "last_name",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Family name.",
+      "max_length": 120
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": true,
+      "description": "Contact email, stored lower case.",
+      "regex": "^[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}$",
+      "max_length": 254
+    },
+    {
+      "name": "phone_e164",
+      "type": "string",
+      "required": false,
+      "nullable": true,
+      "unique": false,
+      "description": "Phone number in E.164 format.",
+      "regex": "^\\+[1-9]\\d{7,14}$"
+    },
+    {
+      "name": "signup_date",
+      "type": "date",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Signup date."
+    },
+    {
+      "name": "country_code",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "ISO 3166-1 alpha-2 country code.",
+      "enum": [
+        "US",
+        "CA",
+        "IN",
+        "GB",
+        "DE",
+        "FR",
+        "AU",
+        "SG"
+      ]
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Account status.",
+      "enum": [
+        "active",
+        "inactive",
+        "suspended"
+      ]
+    },
+    {
+      "name": "credit_limit_cents",
+      "type": "integer",
+      "required": false,
+      "nullable": true,
+      "unique": false,
+      "description": "Credit limit in integer cents.",
+      "min": 0
+    },
+    {
+      "name": "marketing_opt_in",
+      "type": "boolean",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Marketing consent.",
+      "default": false
+    },
+    {
+      "name": "account_tier",
+      "type": "string",
+      "required": true,
+      "nullable": false,
+      "unique": false,
+      "description": "Commercial tier. No source column exists.",
+      "enum": [
+        "standard",
+        "gold"
+      ]
+    }
+  ]
+}

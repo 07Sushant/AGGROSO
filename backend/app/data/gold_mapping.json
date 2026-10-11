@@ -1,0 +1,154 @@
+{
+  "description": "Expected mapping used by scripts/eval_agent.py to score agent proposals.",
+  "key": {
+    "source_field": "cust_id",
+    "target_field": "legacy_id"
+  },
+  "mappings": {
+    "legacy_id": {
+      "source_fields": [
+        "cust_id"
+      ],
+      "required_transforms": []
+    },
+    "first_name": {
+      "source_fields": [
+        "full_name"
+      ],
+      "required_transforms": [
+        "split_name"
+      ]
+    },
+    "last_name": {
+      "source_fields": [
+        "full_name"
+      ],
+      "required_transforms": [
+        "split_name"
+      ]
+    },
+    "email": {
+      "source_fields": [
+        "email_addr"
+      ],
+      "required_transforms": [
+        "lowercase"
+      ]
+    },
+    "phone_e164": {
+      "source_fields": [
+        "phone"
+      ],
+      "required_transforms": [
+        "normalize_phone_e164"
+      ]
+    },
+    "signup_date": {
+      "source_fields": [
+        "signup_dt"
+      ],
+      "required_transforms": [
+        "parse_date"
+      ]
+    },
+    "country_code": {
+      "source_fields": [
+        "country"
+      ],
+      "required_transforms": [
+        "map_values"
+      ]
+    },
+    "status": {
+      "source_fields": [
+        "status_cd"
+      ],
+      "required_transforms": [
+        "map_values"
+      ]
+    },
+    "credit_limit_cents": {
+      "source_fields": [
+        "credit_limit"
+      ],
+      "required_transforms": [
+        "parse_currency_to_cents"
+      ]
+    },
+    "marketing_opt_in": {
+      "source_fields": [
+        "newsletter"
+      ],
+      "required_transforms": [
+        "to_boolean"
+      ]
+    },
+    "account_tier": {
+      "source_fields": [],
+      "required_transforms": [
+        "constant"
+      ]
+    }
+  },
+  "unmapped_source_fields": [
+    "fax",
+    "notes"
+  ],
+  "expected_questions": [
+    {
+      "topic": "mononym",
+      "related_fields": [
+        "full_name"
+      ],
+      "keywords": [
+        "single",
+        "mononym",
+        "one name",
+        "one-word",
+        "last name"
+      ]
+    },
+    {
+      "topic": "credit_na",
+      "related_fields": [
+        "credit_limit"
+      ],
+      "keywords": [
+        "n/a",
+        "null",
+        "missing credit"
+      ]
+    },
+    {
+      "topic": "phone_country",
+      "related_fields": [
+        "phone"
+      ],
+      "keywords": [
+        "country code",
+        "default country"
+      ]
+    },
+    {
+      "topic": "status_s",
+      "related_fields": [
+        "status_cd"
+      ],
+      "keywords": [
+        "suspended",
+        "'s'",
+        "status code"
+      ]
+    },
+    {
+      "topic": "account_tier",
+      "related_fields": [
+        "account_tier"
+      ],
+      "keywords": [
+        "account_tier",
+        "tier"
+      ]
+    }
+  ]
+}

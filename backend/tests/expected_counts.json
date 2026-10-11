@@ -1,0 +1,38 @@
+{
+  "baseline_60": {
+    "source": 60,
+    "transformed": 55,
+    "accepted": 45,
+    "rejected": 15,
+    "transform_errors": 5,
+    "validation_errors": 10,
+    "rejected_by_code": {
+      "DUPLICATE_EMAIL": 1,
+      "DUPLICATE_SOURCE_KEY": 2,
+      "PARSE_CURRENCY_FAILED": 1,
+      "PARSE_DATE_FAILED": 2,
+      "RANGE": 1,
+      "REGEX_MISMATCH": 2,
+      "REQUIRED_FIELD_EMPTY": 4,
+      "UNMAPPED_VALUE": 2
+    },
+    "rejected_rows": {
+      "5": "REQUIRED_FIELD_EMPTY",
+      "7": "REQUIRED_FIELD_EMPTY",
+      "9": "REGEX_MISMATCH",
+      "14": "PARSE_DATE_FAILED",
+      "18": "REQUIRED_FIELD_EMPTY",
+      "22": "UNMAPPED_VALUE",
+      "26": "DUPLICATE_SOURCE_KEY",
+      "29": "RANGE",
+      "33": "REQUIRED_FIELD_EMPTY",
+      "37": "DUPLICATE_EMAIL",
+      "41": "REGEX_MISMATCH",
+      "44": "UNMAPPED_VALUE",
+      "48": "DUPLICATE_SOURCE_KEY",
+      "52": "PARSE_DATE_FAILED",
+      "55": "PARSE_CURRENCY_FAILED"
+    },
+    "hostile_row": 57
+  }
+}
