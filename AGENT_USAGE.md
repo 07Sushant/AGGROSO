@@ -4,7 +4,7 @@ This file records how AI coding agents were used to build MigrateIQ, what they g
 
 ## Tools used
 
-- Kiro, using its workflow agents (Claude models) for planning, phased implementation, code review and documentation. Work was split into phases (setup and skeleton deploy, deterministic core, agent, frontend, deployment and docs), each run as a workflow step with its own status notes and commits.
+- Open Source LLM's, using its workflow agents (Open Source LLM's models) for planning, phased implementation, code review and documentation. Work was split into phases (setup and skeleton deploy, deterministic core, agent, frontend, deployment and docs), each run as a workflow step with its own status notes and commits.
 - The application's own models, named openly: `qwen/qwen3.8-27b` on Groq (primary) and `gemini-3.5-flash-lite` through Gemini's OpenAI-compatible endpoint (backup). These run inside the product and are not coding tools. The UI shows only "Primary" and "Backup".
 
 ## Representative prompts
